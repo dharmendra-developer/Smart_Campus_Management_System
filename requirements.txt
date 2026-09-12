@@ -1,0 +1,8 @@
+Flask>=3.0
+Werkzeug>=3.0
+firebase-admin>=7.0
+grpcio>=1.83.0
+requests>=2.31
+reportlab>=4.0
+python-dotenv>=1.0
+gunicorn>=22.0.0

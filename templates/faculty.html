@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block title %}Faculty Portal{% endblock %}
+{% block content %}
+<style>
+    .faculty-header { display:flex; justify-content:space-between; align-items:end; gap:16px; margin-bottom:20px; }
+    .faculty-header h1 { margin:0 0 5px; }
+    .faculty-header p { margin:0; color:var(--muted); }
+    .daily-card { border-color:#385273; }
+    .daily-toolbar { display:grid; grid-template-columns:1fr 1fr auto; gap:14px; align-items:end; }
+    .daily-toolbar label { margin:0 0 6px; font-size:13px; font-weight:700; }
+    .date-control { display:flex; gap:8px; align-items:center; }
+    .date-control .input { min-width:0; }
+    .date-today { white-space:nowrap; }
+    .daily-tools { display:flex; justify-content:space-between; align-items:center; gap:14px; margin-top:22px; }
+    .daily-search { max-width:300px; }
+    .quick-actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .quick-actions button { border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:#17233b; color:var(--text); cursor:pointer; font-size:12px; }
+    .quick-actions button:hover { background:#26324d; }
+    .attendance-counts { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+    .attendance-count { padding:6px 10px; border-radius:999px; background:#17233b; color:var(--muted); font-size:12px; }
+    .attendance-count strong { color:var(--text); }
+    .daily-list { margin-top:22px; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+    .daily-list-header { display:grid; grid-template-columns:1fr 190px; gap:16px; padding:10px 14px; background:#17233b; color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+    .daily-row { display:grid; grid-template-columns:1fr 190px; gap:16px; align-items:center; padding:12px 14px; border-bottom:1px solid var(--line); }
+    .daily-row:last-child { border-bottom:0; }
+    .daily-row.is-hidden { display:none; }
+    .student-name { font-weight:700; }
+    .student-email { display:block; margin-top:3px; color:var(--muted); font-size:12px; }
+    .attendance-choice { display:flex; gap:8px; }
+    .attendance-choice label { flex:1; margin:0; padding:8px 10px; border:1px solid var(--line); border-radius:8px; text-align:center; cursor:pointer; font-size:12px; }
+    .attendance-choice input { accent-color:var(--good); margin-right:5px; }
+    .daily-footer { display:flex; justify-content:space-between; align-items:center; gap:14px; margin-top:18px; }
+    .daily-footer small { color:var(--muted); }
+    @media (max-width:680px) { .daily-toolbar { grid-template-columns:1fr; } .date-control { align-items:stretch; flex-direction:column; } .date-today { width:100%; } .daily-tools { align-items:stretch; flex-direction:column; } .daily-search { max-width:none; } .daily-list-header { display:none; } .daily-row { grid-template-columns:1fr; gap:10px; } .daily-footer { align-items:stretch; flex-direction:column; } }
+</style>
+
+<div class="faculty-header">
+    <div><h1>Faculty Portal</h1><p>Manage academics and daily class attendance.</p></div>
+</div>
+
+<section class="card daily-card">
+    <h2>Daily attendance</h2>
+    <p class="muted">Choose a class date and mark every student present or absent. You can reopen a date to correct it.</p>
+    <form method="get" action="{{ url_for('faculty_portal') }}">
+        <div class="daily-toolbar">
+            <div><label for="attendance_date">Class date</label><div class="date-control"><input id="attendance_date" class="input" type="date" name="attendance_date" value="{{ attendance_date }}" required><button class="btn secondary date-today" type="button" data-today>Today</button></div></div>
+            <div><label for="attendance_subject">Subject</label><input id="attendance_subject" class="input" name="attendance_subject" value="{{ selected_subject }}" placeholder="e.g. Database Systems" required></div>
+            <button class="btn secondary" type="submit">Load class</button>
+        </div>
+    </form>
+    {% if selected_subject %}
+    <form method="post" action="{{ url_for('save_daily_attendance') }}">
+        <input type="hidden" name="attendance_date" value="{{ attendance_date }}">
+        <input type="hidden" name="daily_subject" value="{{ selected_subject }}">
+        <div class="daily-tools">
+            <input class="input daily-search" type="search" placeholder="Search student..." aria-label="Search student" data-student-search>
+            <div class="quick-actions" aria-label="Quick attendance actions">
+                <button type="button" data-mark-all="present">Mark all present</button>
+                <button type="button" data-mark-all="absent">Mark all absent</button>
+            </div>
+        </div>
+        <div class="attendance-counts" aria-live="polite">
+            <span class="attendance-count">Students: <strong data-count="total">{{ students|length }}</strong></span>
+            <span class="attendance-count">Present: <strong data-count="present">0</strong></span>
+            <span class="attendance-count">Absent: <strong data-count="absent">0</strong></span>
+        </div>
+        <div class="daily-list">
+            <div class="daily-list-header"><span>Student</span><span>Status</span></div>
+            {% for s in students %}
+            {% set status = daily_statuses.get(s['id'], 'absent') %}
+            <div class="daily-row" data-student-row data-student-name="{{ s['name']|lower }} {{ s['email']|lower }}">
+                <div><span class="student-name">{{ s['name'] }}</span><span class="student-email">{{ s['email'] }}</span></div>
+                <div class="attendance-choice">
+                    <label><input type="radio" name="attendance_{{ s['id'] }}" value="present" {% if status == 'present' %}checked{% endif %} required> Present</label>
+                    <label><input type="radio" name="attendance_{{ s['id'] }}" value="absent" {% if status == 'absent' %}checked{% endif %}> Absent</label>
+                </div>
+            </div>
+            {% else %}<div class="daily-row"><span class="muted">No students found in your department.</span></div>{% endfor %}
+        </div>
+        <div class="daily-footer"><small>{{ students|length }} student(s) in this class list</small><button class="btn" type="submit">Save daily attendance</button></div>
+    </form>
+    {% endif %}
+</section>
+
+<div class="grid">
+    <section class="card"><h2>Add Marks</h2><form method="post" action="{{ url_for('add_faculty_mark') }}"><label>Student</label><select name="student_id" required>{% for s in students %}<option value="{{ s['id'] }}">{{ s['name'] }} - {{ s['email'] }}</option>{% endfor %}</select><label>Subject</label><input class="input" name="subject" required><label>Assessment</label><input class="input" name="assessment" required><label>Score</label><input class="input" type="number" step="0.1" name="score" required><label>Max Score</label><input class="input" type="number" step="0.1" name="max_score" value="100" required><br><button class="btn">Save Marks</button></form></section>
+    <section class="card"><h2>Manual summary update</h2><form method="post" action="{{ url_for('add_faculty_attendance') }}"><label>Student</label><select name="student_id">{% for s in students %}<option value="{{ s['id'] }}">{{ s['name'] }}</option>{% endfor %}</select><label>Subject</label><input class="input" name="subject" required><label>Attended</label><input class="input" type="number" name="attended" min="0" required><label>Total Classes</label><input class="input" type="number" name="total_classes" min="0" required><br><button class="btn secondary">Save Summary</button></form></section>
+    <section class="card"><h2>Assignment</h2><form method="post" action="{{ url_for('add_faculty_assignment') }}"><label>Subject</label><input class="input" name="subject" required><label>Title</label><input class="input" name="title" required><label>Due Date</label><input class="input" type="date" name="due_date" required><label>Description</label><textarea name="description"></textarea><br><button class="btn">Add Assignment</button></form></section>
+</div>
+
+<div class="card"><h2>Recent Marks</h2><table><tr><th>Student</th><th>Subject</th><th>Assessment</th><th>Score</th></tr>{% for r in recent_marks %}<tr><td>{{ r['name'] }}</td><td>{{ r['subject'] }}</td><td>{{ r['assessment'] }}</td><td>{{ r['score'] }}/{{ r['max_score'] }}</td></tr>{% else %}<tr><td colspan="4" class="muted">No marks recorded yet.</td></tr>{% endfor %}</table></div>
+<div class="card"><h2>Attendance Summary</h2><table><tr><th>Student</th><th>Subject</th><th>Attendance</th></tr>{% for r in attendance_summary %}<tr><td>{{ r['name'] }}</td><td>{{ r['subject'] }}</td><td>{{ r['attended'] }}/{{ r['total_classes'] }}</td></tr>{% else %}<tr><td colspan="3" class="muted">No attendance summary yet.</td></tr>{% endfor %}</table></div>
+<script>
+    (function () {
+        var dateInput = document.querySelector('[data-today]');
+        var searchInput = document.querySelector('[data-student-search]');
+        var rows = Array.from(document.querySelectorAll('[data-student-row]'));
+        var form = document.querySelector('.daily-card form[method="post"]');
+        if (dateInput) {
+            dateInput.addEventListener('click', function () {
+                var now = new Date();
+                var month = String(now.getMonth() + 1).padStart(2, '0');
+                var day = String(now.getDate()).padStart(2, '0');
+                document.getElementById('attendance_date').value = now.getFullYear() + '-' + month + '-' + day;
+            });
+        }
+        function updateCounts() {
+            var present = document.querySelectorAll('input[value="present"]:checked').length;
+            var absent = document.querySelectorAll('input[value="absent"]:checked').length;
+            var presentCount = document.querySelector('[data-count="present"]');
+            var absentCount = document.querySelector('[data-count="absent"]');
+            if (presentCount) presentCount.textContent = present;
+            if (absentCount) absentCount.textContent = absent;
+        }
+        document.querySelectorAll('.attendance-choice input').forEach(function (input) {
+            input.addEventListener('change', updateCounts);
+        });
+        document.querySelectorAll('[data-mark-all]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var status = button.getAttribute('data-mark-all');
+                rows.forEach(function (row) {
+                    var option = row.querySelector('input[value="' + status + '"]');
+                    if (option) option.checked = true;
+                });
+                updateCounts();
+            });
+        });
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                var term = searchInput.value.trim().toLowerCase();
+                rows.forEach(function (row) {
+                    row.classList.toggle('is-hidden', term && !row.getAttribute('data-student-name').includes(term));
+                });
+            });
+        }
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                if (!window.confirm('Save attendance for this date and subject?')) event.preventDefault();
+            });
+        }
+        updateCounts();
+    }());
+</script>
+{% endblock %}

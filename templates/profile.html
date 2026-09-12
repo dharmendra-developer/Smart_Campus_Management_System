@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<style>
+	.profile-page { max-width: 1080px; margin: 0 auto; }
+	.profile-heading { display:flex; justify-content:space-between; align-items:flex-end; gap:20px; margin: 8px 0 22px; }
+	.profile-heading h1 { margin:0 0 6px; font-size:clamp(28px, 4vw, 38px); letter-spacing:-.5px; }
+	.profile-heading p { margin:0; color:var(--muted); }
+	.profile-layout { display:grid; grid-template-columns:280px minmax(0, 1fr); gap:20px; align-items:start; }
+	.profile-sidebar { position:sticky; top:82px; }
+	.profile-card { background:rgba(18,26,45,.92); border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:0 12px 30px #0003; }
+	.profile-identity { text-align:center; }
+	.profile-avatar { display:grid; place-items:center; width:82px; height:82px; margin:0 auto 14px; border-radius:50%; background:linear-gradient(145deg, #6ea8fe, #37d39a); color:#07101e; font-size:32px; font-weight:800; }
+	.profile-identity h2 { margin:0 0 5px; font-size:22px; }
+	.profile-identity p { margin:0; color:var(--muted); overflow-wrap:anywhere; }
+	.profile-role { display:inline-block; margin-top:14px; padding:6px 10px; border:1px solid #385273; border-radius:999px; color:#c8dcff; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; }
+	.profile-divider { height:1px; margin:22px 0; background:var(--line); }
+	.profile-meta { display:grid; gap:14px; margin:0; }
+	.profile-meta div { display:flex; justify-content:space-between; gap:12px; font-size:13px; }
+	.profile-meta dt { color:var(--muted); }
+	.profile-meta dd { margin:0; text-align:right; color:#dce7fb; overflow-wrap:anywhere; }
+	.profile-form { padding:26px; }
+	.section-heading { display:flex; align-items:baseline; justify-content:space-between; gap:14px; margin-bottom:18px; }
+	.section-heading h2 { margin:0; font-size:19px; }
+	.section-heading span { color:var(--muted); font-size:12px; }
+	.form-section + .form-section { margin-top:28px; padding-top:26px; border-top:1px solid var(--line); }
+	.form-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px 18px; }
+	.field label { display:flex; gap:4px; margin:0 0 7px; color:#cdd9ed; font-size:13px; font-weight:700; }
+	.required { color:var(--accent); }
+	.field small { display:block; margin-top:6px; color:var(--muted); font-size:11px; }
+	.profile-form .input, .profile-form select { min-height:44px; }
+	.profile-actions { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:28px; padding-top:20px; border-top:1px solid var(--line); }
+	.profile-actions p { margin:0; color:var(--muted); font-size:12px; }
+	.profile-actions .btn { min-width:145px; }
+	@media (max-width:760px) { .profile-heading { display:block; } .profile-heading .muted { margin-top:8px; } .profile-layout { grid-template-columns:1fr; } .profile-sidebar { position:static; } .profile-identity { display:grid; grid-template-columns:auto 1fr; column-gap:14px; text-align:left; align-items:center; } .profile-avatar { grid-row:span 2; margin:0; } .profile-role { margin-top:4px; } .profile-divider, .profile-meta { display:none; } .profile-form { padding:20px; } }
+	@media (max-width:520px) { .form-grid { grid-template-columns:1fr; } .profile-actions { align-items:stretch; flex-direction:column; } .profile-actions .btn { width:100%; } }
+</style>
+
+<div class="profile-page">
+	<header class="profile-heading">
+		<div>
+			<h1>My profile</h1>
+			<p>Keep your academic and career information current.</p>
+		</div>
+	</header>
+
+	<div class="profile-layout">
+		<aside class="profile-sidebar">
+			<section class="profile-card profile-identity">
+				<div class="profile-avatar" aria-hidden="true">{{ user['name'][0]|upper }}</div>
+				<div>
+					<h2>{{ user['name'] }}</h2>
+					<p>{{ user['email'] }}</p>
+					<span class="profile-role">{{ user['role'] }}</span>
+				</div>
+				<div class="profile-divider"></div>
+				<dl class="profile-meta">
+					<div><dt>Department</dt><dd>{{ user['department'] }}</dd></div>
+					<div><dt>Profile status</dt><dd>Active</dd></div>
+				</dl>
+			</section>
+		</aside>
+
+		<form class="profile-card profile-form" method="post">
+			<section class="form-section">
+				<div class="section-heading"><h2>Basic information</h2><span>Required details</span></div>
+				<div class="form-grid">
+					<div class="field"><label for="name">Full name <span class="required">*</span></label><input id="name" class="input" name="name" value="{{ user['name'] }}" required></div>
+					<div class="field"><label for="email">Email address <span class="required">*</span></label><input id="email" class="input" type="email" name="email" value="{{ user['email'] }}" required></div>
+					<div class="field"><label for="department">Department <span class="required">*</span></label><select id="department" name="department">{% for d in departments %}<option {% if user['department']==d %}selected{% endif %}>{{ d }}</option>{% endfor %}</select></div>
+					<div class="field"><label for="phone">Phone number</label><input id="phone" class="input" name="phone" value="{{ profile['phone'] if profile else '' }}" placeholder="e.g. +91 98765 43210"></div>
+				</div>
+			</section>
+
+			<section class="form-section">
+				<div class="section-heading"><h2>Academic details</h2><span>Help us personalize your experience</span></div>
+				<div class="form-grid">
+					<div class="field"><label for="enrollment_no">Enrollment number</label><input id="enrollment_no" class="input" name="enrollment_no" value="{{ profile['enrollment_no'] if profile else '' }}"></div>
+					<div class="field"><label for="semester">Current semester</label><input id="semester" class="input" name="semester" value="{{ profile['semester'] if profile else '' }}" placeholder="e.g. 5th Semester"></div>
+					<div class="field"><label for="date_of_birth">Date of birth</label><input id="date_of_birth" class="input" type="date" name="date_of_birth" value="{{ profile['date_of_birth'] if profile else '' }}"></div>
+					<div class="field"><label for="cgpa">CGPA</label><input id="cgpa" class="input" name="cgpa" value="{{ profile['cgpa'] if profile else '' }}" placeholder="e.g. 8.6"></div>
+				</div>
+			</section>
+
+			<section class="form-section">
+				<div class="section-heading"><h2>Career profile</h2><span>Make your profile discoverable</span></div>
+				<div class="form-grid">
+					<div class="field"><label for="skills">Skills</label><input id="skills" class="input" name="skills" value="{{ profile['skills'] if profile else '' }}" placeholder="Python, UI design, communication"></div>
+					<div class="field"><label for="career_interest">Career interests</label><input id="career_interest" class="input" name="career_interest" value="{{ profile['career_interest'] if profile else '' }}" placeholder="e.g. Data science, product design"></div>
+					<div class="field"><label for="linkedin_url">LinkedIn URL</label><input id="linkedin_url" class="input" type="url" name="linkedin_url" value="{{ profile['linkedin_url'] if profile else '' }}" placeholder="https://linkedin.com/in/your-name"></div>
+					<div class="field"><label for="resume_url">Resume URL</label><input id="resume_url" class="input" type="url" name="resume_url" value="{{ profile['resume_url'] if profile else '' }}" placeholder="Link to your latest resume"></div>
+				</div>
+			</section>
+
+			<div class="profile-actions">
+				<p>Changes are saved securely to your student profile.</p>
+				<button class="btn" type="submit">Save changes</button>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

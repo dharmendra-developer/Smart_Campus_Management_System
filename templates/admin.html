@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<style>
+    .admin-heading { margin-bottom:20px; }
+    .admin-heading h1 { margin-bottom:5px; }
+    .admin-heading p { margin:0; color:var(--muted); }
+    .session-form { border-color:#385273; }
+    .session-form .grid { align-items:end; }
+    .session-form label { font-size:13px; font-weight:700; }
+    .session-help { margin:10px 0 0; color:var(--muted); font-size:12px; }
+    .session-list { display:grid; gap:10px; }
+    .session-item { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:14px; border:1px solid var(--line); border-radius:10px; background:#0f172a; }
+    .session-item h3 { margin:0 0 5px; font-size:15px; }
+    .session-item p { margin:0; color:var(--muted); font-size:12px; }
+    .session-code { padding:8px 10px; border-radius:8px; background:#17233b; color:#dce7fb; font-family:monospace; font-weight:700; letter-spacing:.5px; white-space:nowrap; }
+    @media (max-width:650px) { .session-item { align-items:stretch; flex-direction:column; } .session-code { text-align:center; } }
+</style>
+
+<div class="admin-heading"><h1>Admin Dashboard</h1><p>Manage campus operations and attendance sessions.</p></div>
+<div class="grid">
+    <div class="card"><div class="stat">{{ stats.students }}</div><div class="muted">Students</div></div>
+    <div class="card"><div class="stat">{{ stats.complaints }}</div><div class="muted">Open Complaints</div></div>
+    <div class="card"><div class="stat">{{ stats.notices }}</div><div class="muted">Notices</div></div>
+    <div class="card"><div class="stat">{{ stats.events }}</div><div class="muted">Events</div></div>
+</div>
+
+<section class="card session-form">
+    <h2>Create Attendance Session</h2>
+    <p class="muted">Code field blank chhodne par system automatically unique session code generate karega.</p>
+    <form method="post" action="{{ url_for('create_attendance_session') }}">
+        <div class="grid">
+            <div><label for="session_subject">Subject</label><input id="session_subject" class="input" name="subject" placeholder="e.g. Data Structures" required></div>
+            <div><label for="session_department">Department</label><select id="session_department" name="department" required>{% for d in departments %}<option>{{ d }}</option>{% endfor %}</select></div>
+            <div><label for="session_code">Session code <span class="muted">(optional)</span></label><input id="session_code" class="input" name="session_code" placeholder="Leave blank for auto-generate" minlength="4"></div>
+        </div>
+        <p class="session-help">Example generated code: <strong>DS-1209-A3F1</strong>. Students will see the active session on their Attendance page.</p>
+        <br><button class="btn" type="submit">Generate Session Code</button>
+    </form>
+</section>
+
+<section class="card">
+    <div class="row"><h2 style="margin-right:auto">Active Attendance Sessions</h2><span class="pill">{{ active_attendance_sessions|length }} active</span></div>
+    <div class="session-list">
+        {% for item in active_attendance_sessions %}
+        <div class="session-item">
+            <div><h3>{{ item['subject'] }}</h3><p>{{ item['department'] }} · Created {{ item['created_at'] }}</p></div>
+            <span class="session-code">{{ item['session_code'] }}</span>
+        </div>
+        {% else %}<p class="muted">No active sessions. Create one above.</p>{% endfor %}
+    </div>
+</section>
+
+<div class="card"><h2>Complaints</h2><table><tr><th>Student</th><th>Subject</th><th>Message</th><th>Status</th><th>Action</th></tr>{% for c in complaints %}<tr><td>{{ c['name'] }}</td><td>{{ c['subject'] }}</td><td>{{ c['message'] }}</td><td>{{ c['status'] }}</td><td><form method="post" action="{{ url_for('update_complaint', id=c['id']) }}"><select name="status"><option>Pending</option><option>In Progress</option><option>Resolved</option></select><button class="btn">Update</button></form></td></tr>{% else %}<tr><td colspan="5" class="muted">No complaints found.</td></tr>{% endfor %}</table><br><a class="btn secondary" href="{{ url_for('student_report') }}">Download Student CSV</a></div>
+{% endblock %}

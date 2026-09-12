@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{% block title %}Smart Campus{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #08131f;
+            --bg-soft: #0d1d2b;
+            --card: rgba(16, 35, 51, .9);
+            --card-solid: #102333;
+            --line: #284256;
+            --line-strong: #386078;
+            --text: #edf6f4;
+            --muted: #91a8b3;
+            --accent: #55d6be;
+            --accent-soft: #183d43;
+            --warm: #f6b36a;
+            --good: #57d69a;
+            --bad: #ff7f88;
+            --shadow: 0 18px 45px rgba(0, 0, 0, .2);
+        }
+        * { box-sizing: border-box; }
+        html { min-width: 320px; }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: radial-gradient(circle at 10% 0%, rgba(51, 126, 123, .2), transparent 30%), linear-gradient(145deg, var(--bg), #0a1927 55%, #101d2c);
+            color: var(--text);
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            line-height: 1.55;
+        }
+        body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .22; background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 32px 32px; mask-image: linear-gradient(to bottom, black, transparent 80%); }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { color: #a1f4e1; }
+        .nav { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-height: 68px; padding: 10px max(5%, 18px); background: rgba(6, 18, 29, .88); border-bottom: 1px solid rgba(85, 214, 190, .15); backdrop-filter: blur(16px); }
+        .brand { display: inline-flex; align-items: center; gap: 9px; margin-right: auto; padding: 8px 14px 8px 0 !important; color: var(--text) !important; font-size: 18px; font-weight: 800; letter-spacing: .2px; }
+        .brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: var(--accent); color: #08201f; font-size: 16px; }
+        .nav a:not(.brand) { padding: 8px 10px; border: 1px solid transparent; border-radius: 8px; color: var(--muted); font-size: 13px; font-weight: 700; }
+        .nav a:not(.brand):hover, .nav a.nav-current { border-color: var(--line); background: var(--accent-soft); color: var(--text); }
+        .container { position: relative; z-index: 1; width: min(1200px, calc(100% - 40px)); margin: 38px auto 0; }
+        h1, h2, h3, h4 { color: var(--text); line-height: 1.2; letter-spacing: -.25px; }
+        h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 42px); }
+        h2 { margin: 0 0 14px; font-size: 21px; }
+        h3 { margin: 0 0 8px; font-size: 16px; }
+        p { margin: 0 0 12px; }
+        .hero, .card { margin-bottom: 20px; padding: 25px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+        .hero { position: relative; overflow: hidden; padding: 34px; border-color: rgba(85, 214, 190, .35); background: linear-gradient(115deg, rgba(22, 67, 75, .95), rgba(16, 35, 51, .95) 60%); }
+        .hero::after { content: ""; position: absolute; width: 190px; height: 190px; right: -55px; top: -70px; border: 1px solid rgba(246, 179, 106, .35); border-radius: 50%; box-shadow: 0 0 0 18px rgba(246, 179, 106, .04), 0 0 0 36px rgba(246, 179, 106, .03); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+        .stat { margin-bottom: 3px; color: var(--accent); font-size: 34px; font-weight: 800; letter-spacing: -1px; }
+        .muted { color: var(--muted); }
+        label { display: block; margin: 14px 0 7px; color: #c7d8dc; font-size: 13px; font-weight: 700; }
+        .input, select, textarea { width: 100%; padding: 12px 13px; border: 1px solid var(--line); border-radius: 9px; outline: none; background: rgba(5, 17, 28, .72); color: var(--text); font: inherit; transition: border-color .18s, box-shadow .18s; }
+        .input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(85, 214, 190, .12); }
+        textarea { min-height: 110px; resize: vertical; }
+        .password-field { display: flex; gap: 8px; align-items: stretch; }
+        .password-field .input { min-width: 0; }
+        .password-toggle { border: 1px solid var(--line); border-radius: 9px; background: #183346; color: var(--text); padding: 0 13px; font-weight: 700; cursor: pointer; }
+        .password-toggle:hover { background: #24516a; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 10px 16px; border: 1px solid transparent; border-radius: 9px; background: var(--accent); color: #06221f; font-weight: 800; cursor: pointer; transition: transform .18s, filter .18s; }
+        .btn:hover { color: #06221f; filter: brightness(1.08); transform: translateY(-1px); }
+        .btn.secondary { border-color: var(--line-strong); background: #193449; color: var(--text); }
+        .btn.secondary:hover { color: var(--text); }
+        .btn.danger { background: var(--bad); color: #281014; }
+        .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .flash { margin-bottom: 14px; padding: 13px 16px; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 9px; background: #122a3b; }
+        .flash.success { border-left-color: var(--good); }
+        .flash.danger { border-left-color: var(--bad); }
+        table { width: 100%; border-collapse: collapse; overflow: hidden; }
+        th, td { padding: 13px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+        th { color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; }
+        tr:last-child td { border-bottom: 0; }
+        tr:hover td { background: rgba(85, 214, 190, .035); }
+        .pill { display: inline-block; padding: 5px 10px; border: 1px solid rgba(85, 214, 190, .22); border-radius: 999px; background: var(--accent-soft); color: #b6f4e6; font-size: 12px; font-weight: 700; }
+        .ok { color: var(--good); }
+        .bad { color: var(--bad); }
+        footer { position: relative; z-index: 1; padding: 44px 20px 30px; color: var(--muted); text-align: center; font-size: 12px; }
+        .chat { position: fixed; right: 20px; bottom: 20px; max-width: 340px; z-index: 9; }
+        .small { font-size: 13px; }
+        @media (max-width: 900px) { .nav { gap: 2px; } .nav a:not(.brand) { padding: 7px 8px; font-size: 12px; } }
+        @media (max-width: 700px) { .nav { position: relative; align-items: stretch; } .brand { width: 100%; margin-right: 0; } .container { width: min(100% - 28px, 620px); margin-top: 22px; } .hero, .card { padding: 20px; border-radius: 12px; } .hero { padding: 27px 22px; } .nav a:not(.brand) { flex: 1 0 auto; text-align: center; } table { display: block; overflow-x: auto; white-space: nowrap; } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">SC</span> Smart Campus</a>
+        {% if session.get('user_id') %}
+            <a class="{{ 'nav-current' if request.endpoint == 'dashboard' }}" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="{{ 'nav-current' if request.endpoint == 'academics' }}" href="{{ url_for('academics') }}">Academics</a>
+            <a class="{{ 'nav-current' if request.endpoint == 'materials' }}" href="{{ url_for('materials') }}">Materials</a>
+            <a class="{{ 'nav-current' if request.endpoint == 'attendance_portal' }}" href="{{ url_for('attendance_portal') }}">Attendance</a>
+            <a class="{{ 'nav-current' if request.endpoint == 'placement' }}" href="{{ url_for('placement') }}">Placement</a>
+            <a class="{{ 'nav-current' if request.endpoint == 'campus_services' }}" href="{{ url_for('campus_services') }}">Services</a>
+            <a class="{{ 'nav-current' if request.endpoint == 'insights' }}" href="{{ url_for('insights') }}">Insights</a>
+            <a class="{{ 'nav-current' if request.endpoint == 'quiz' }}" href="{{ url_for('quiz') }}">Quiz</a>
+            <a class="{{ 'nav-current' if request.endpoint == 'profile' }}" href="{{ url_for('profile') }}">Profile</a>
+            {% if session.get('role') in ['faculty','admin'] %}<a class="{{ 'nav-current' if request.endpoint == 'faculty_portal' }}" href="{{ url_for('faculty_portal') }}">Faculty</a>{% endif %}
+            {% if session.get('role') == 'admin' %}<a class="{{ 'nav-current' if request.endpoint == 'admin' }}" href="{{ url_for('admin') }}">Admin</a>{% endif %}
+            <a class="{{ 'nav-current' if request.endpoint == 'notifications' }}" href="{{ url_for('notifications') }}">Alerts</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+            <a class="{{ 'nav-current' if request.endpoint == 'login' }}" href="{{ url_for('login') }}">Login</a>
+            <a class="{{ 'nav-current' if request.endpoint == 'register' }}" href="{{ url_for('register') }}">Register</a>
+        {% endif %}
+    </nav>
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <footer>Smart Campus Management &amp; Student Assistance System</footer>
+    <script>
+        document.addEventListener('click', function (event) {
+            var toggle = event.target.closest('[data-password-toggle]');
+            if (!toggle) return;
+            var field = document.getElementById(toggle.getAttribute('aria-controls'));
+            if (!field) return;
+            var visible = field.type === 'text';
+            field.type = visible ? 'password' : 'text';
+            toggle.textContent = visible ? 'Show' : 'Hide';
+            toggle.setAttribute('aria-label', visible ? 'Show password' : 'Hide password');
+            toggle.setAttribute('aria-pressed', String(!visible));
+        });
+    </script>
+</body>
+</html>
